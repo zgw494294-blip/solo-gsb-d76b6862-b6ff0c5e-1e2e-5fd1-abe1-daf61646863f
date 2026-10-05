@@ -1,0 +1,6 @@
+body { font-family: system-ui, sans-serif; margin: 24px; }
+h1 { color: #1d4ed8; }
+/* 相对本 CSS 文件目录：assets/css/../img/banner.jpg */
+.hero { background-image: url(../img/banner.jpg); }
+/* 根相对：指向包根 */
+.badge { background-image: url(/assets/img/logo.png); }

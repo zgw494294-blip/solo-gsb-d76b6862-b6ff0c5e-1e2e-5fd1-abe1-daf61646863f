@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+  <h1>上传样张包</h1>
+  <p class="muted">
+    仅支持 UTF-8 的 HTML/CSS 与 PNG/JPEG；至多 {{ max_files }} 个文件，解压总量不超过 {{ max_total_mb }} MiB。
+    含绝对路径、逃逸包根、符号链接或规范化重名条目的 ZIP 将被整体拒绝。
+  </p>
+  {% if error %}
+  <div class="alert" role="alert">上传被拒绝：{{ error }}</div>
+  {% endif %}
+  <form method="post" action="{{ url_for('upload') }}" enctype="multipart/form-data" class="upload-form">
+    <label class="file-picker">
+      <input type="file" name="file" id="file-input" accept=".zip,application/zip" required>
+      <span class="file-picker-label" id="file-label">选择 ZIP 文件…</span>
+    </label>
+    <button type="submit" class="btn primary">上传并审阅</button>
+  </form>
+</section>
+
+<section class="card">
+  <h2>已加载的包（{{ packages|length }}）</h2>
+  {% if packages %}
+  <table class="table">
+    <thead>
+      <tr><th>包名</th><th>HTML 入口</th><th>文件数</th><th>问题引用</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for p in packages %}
+      <tr>
+        <td><a href="{{ url_for('package_page', pkg_id=p.id) }}">{{ p.name }}</a></td>
+        <td>{{ p.html_entries|length }}</td>
+        <td>{{ p.files|length }}</td>
+        <td>{{ p.report.entries|length }}</td>
+        <td class="actions">
+          <a class="btn" href="{{ url_for('package_page', pkg_id=p.id) }}">打开</a>
+          <form method="post" action="{{ url_for('delete_package', pkg_id=p.id) }}" class="inline-form" data-confirm="确定删除包 {{ p.name }}？">
+            <button type="submit" class="btn danger">删除</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">还没有加载任何包。可以先上传 samples/ 目录下的示例包体验。</p>
+  {% endif %}
+</section>
+{% endblock %}

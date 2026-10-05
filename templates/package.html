@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}{{ pkg.name }} · 样张审阅台{% endblock %}
+{% block content %}
+<section class="card">
+  <div class="pkg-head">
+    <div>
+      <h1>{{ pkg.name }}</h1>
+      <p class="muted">
+        {{ pkg.files|length }} 个文件 · {{ pkg.html_entries|length }} 个 HTML 入口 ·
+        {{ pkg.report.entries|length }} 条问题引用
+      </p>
+    </div>
+    <form method="post" action="{{ url_for('delete_package', pkg_id=pkg.id) }}" class="inline-form" data-confirm="确定删除该包？">
+      <button type="submit" class="btn danger">删除包</button>
+    </form>
+  </div>
+</section>
+
+<div class="layout">
+  <aside class="sidebar">
+    <section class="card">
+      <h2>HTML 入口</h2>
+      {% if pkg.html_entries %}
+      <ul class="entry-list">
+        {% for entry in pkg.html_entries %}
+        <li><a href="{{ url_for('view_page', pkg_id=pkg.id, path=entry) }}" target="preview">{{ entry }}</a></li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="muted">包内没有 HTML 入口。</p>
+      {% endif %}
+    </section>
+
+    <section class="card">
+      <h2>问题引用（{{ pkg.report.entries|length }}）</h2>
+      {% if pkg.report.entries %}
+      <table class="table report">
+        <thead>
+          <tr><th>来源</th><th>位置</th><th>目标</th><th>问题</th></tr>
+        </thead>
+        <tbody>
+          {% for r in pkg.report.entries %}
+          <tr>
+            <td class="mono">{{ r.source }}</td>
+            <td class="mono">{{ r.context }}</td>
+            <td class="mono break">{{ r.target }}</td>
+            <td>
+              <span class="badge badge-{{ r.status }}">{{ status_labels.get(r.status, r.status) }}</span>
+              {% if r.detail %}<div class="muted small">{{ r.detail }}</div>{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="muted">没有发现缺失、越界或包外引用。</p>
+      {% endif %}
+    </section>
+  </aside>
+
+  <section class="card preview-card">
+    <h2>隔离预览</h2>
+    <p class="muted small">
+      预览运行于 iframe sandbox 与严格 CSP 之下：脚本、表单、嵌套框架、弹窗与顶层跳转均已禁用，
+      仅能加载本包内资源。
+    </p>
+    {% if pkg.html_entries %}
+    <iframe
+      name="preview"
+      class="preview-frame"
+      sandbox=""
+      referrerpolicy="no-referrer"
+      src="{{ url_for('view_page', pkg_id=pkg.id, path=pkg.html_entries[0]) }}"></iframe>
+    {% else %}
+    <div class="preview-empty">没有可预览的页面。</div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,2 @@
+/* 深层 CSS：assets/css/pages/../../img/banner.jpg -> assets/img/banner.jpg */
+.gallery { padding: 24px; color: #fff; background-image: url(../../img/banner.jpg); background-size: cover; }

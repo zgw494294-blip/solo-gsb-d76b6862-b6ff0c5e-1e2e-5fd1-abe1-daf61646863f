@@ -1,0 +1,6 @@
+@import "https://evil.example/imp.css";
+body { font-family: system-ui, sans-serif; margin: 24px; }
+.good { background-image: url(ok.png); }
+.missing { background-image: url(nope.png); }
+.evil { background-image: url(https://evil.example/x.png); }
+.escape { background-image: url(../../out.png); }
