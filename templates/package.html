@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ pkg.name }} · 审阅</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+</head>
+<body>
+<header class="top">
+  <h1>{{ pkg.name }}</h1>
+  <p><a href="{{ url_for('index') }}">&larr; 返回包列表</a></p>
+</header>
+
+<div class="layout">
+  <aside class="card side">
+    <h2>HTML 入口（{{ pkg.html_entries|length }}）</h2>
+    <ul class="entries">
+      {% for e in pkg.html_entries %}
+      <li><a class="{{ 'cur' if e == entry }}"
+             href="{{ url_for('package_page', pkg_id=pkg.id, entry=e) }}">{{ e }}</a></li>
+      {% endfor %}
+    </ul>
+    <h2>包内文件（{{ pkg.files|length }}）</h2>
+    <ul class="files">
+      {% for path, f in pkg.files|dictsort %}
+      <li><span class="tag {{ f.type }}">{{ f.type }}</span> <span class="mono">{{ path }}</span></li>
+      {% endfor %}
+    </ul>
+  </aside>
+
+  <main>
+    <section class="card">
+      <h2>隔离预览：<code>{{ entry }}</code></h2>
+      <p class="muted">沙盒 iframe：脚本、事件属性、表单、嵌套框架、弹窗与顶层跳转均被禁用；
+         仅能加载本包资源，无法访问主应用接口或其它包。</p>
+      <iframe class="preview" sandbox
+              src="{{ url_for('view_file', pkg_id=pkg.id, fname=entry) }}"
+              title="样张预览"></iframe>
+    </section>
+
+    <section class="card">
+      <h2>引用问题（缺失 / 越界 / 包外，均不发起请求）</h2>
+      {% if pkg.ref_issues %}
+      <table>
+        <thead>
+          <tr><th>来源文件</th><th>位置</th><th>原始引用</th><th>解析目标</th><th>处理</th></tr>
+        </thead>
+        <tbody>
+          {% for i in pkg.ref_issues %}
+          <tr>
+            <td class="mono">{{ i.source }}</td>
+            <td>{{ i.where }}</td>
+            <td class="mono wrap">{{ i.ref }}</td>
+            <td class="mono wrap">{{ i.target }}</td>
+            <td><span class="badge">{{ i.status }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="ok">未发现缺失、越界或包外引用。</p>
+      {% endif %}
+    </section>
+
+    <section class="card">
+      <h2>已禁用的内容</h2>
+      {% if pkg.removed_issues %}
+      <table>
+        <thead>
+          <tr><th>来源文件</th><th>内容</th><th>处理</th></tr>
+        </thead>
+        <tbody>
+          {% for i in pkg.removed_issues %}
+          <tr>
+            <td class="mono">{{ i.source }}</td>
+            <td class="mono wrap">{{ i.where }}</td>
+            <td>{{ i.status }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="ok">没有需要禁用的脚本、表单或框架。</p>
+      {% endif %}
+    </section>
+  </main>
+</div>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

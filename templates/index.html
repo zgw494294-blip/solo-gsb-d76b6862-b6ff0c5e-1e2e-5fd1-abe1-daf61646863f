@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>离线网页样张审阅台</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+</head>
+<body>
+<header class="top">
+  <h1>离线网页样张审阅台</h1>
+  <p>上传 ZIP 样张包，在隔离沙盒中审阅其中的 HTML 入口。
+     限制：至多 {{ max_files }} 个文件、解压总量 ≤ {{ max_total_mib }} MiB，
+     仅 UTF-8 的 HTML/CSS 与 PNG/JPEG。</p>
+</header>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <ul class="flash">
+    {% for cat, msg in messages %}<li class="{{ cat }}">{{ msg }}</li>{% endfor %}
+  </ul>
+  {% endif %}
+{% endwith %}
+
+<section class="card">
+  <h2>上传样张包</h2>
+  <form method="post" action="{{ url_for('upload') }}" enctype="multipart/form-data" class="upload">
+    <input type="file" name="file" accept=".zip,application/zip" required>
+    <span data-file-name class="muted"></span>
+    <button type="submit" class="btn primary">上传并解析</button>
+  </form>
+</section>
+
+<section class="card">
+  <h2>已加载的包（内存保存，最多 {{ max_packages }} 个）</h2>
+  {% if packages %}
+  <table>
+    <thead>
+      <tr><th>名称</th><th>文件数</th><th>HTML 入口</th><th>问题数</th><th>加载时间</th><th>操作</th></tr>
+    </thead>
+    <tbody>
+      {% for p in packages %}
+      <tr>
+        <td class="mono">{{ p.name }}</td>
+        <td>{{ p.files|length }}</td>
+        <td>{{ p.html_entries|length }}</td>
+        <td>{{ p.issues|length }}</td>
+        <td>{{ p.created }}</td>
+        <td class="actions">
+          <a class="btn" href="{{ url_for('package_page', pkg_id=p.id) }}">审阅</a>
+          <form method="post" action="{{ url_for('delete_package', pkg_id=p.id) }}"
+                data-confirm="确定删除该包？">
+            <button type="submit" class="btn danger">删除</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">暂无包，请先上传。可试试 samples/ 目录下的样例。</p>
+  {% endif %}
+</section>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
